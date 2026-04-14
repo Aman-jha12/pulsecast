@@ -3,7 +3,7 @@ import {
   EVENT_WEIGHTS,
   MAX_OVERS,
   MAX_WICKETS,
-} from "../config/constants";
+} from "../../config/constants";
 import { MatchEvent , EventType} from "@/types/event";
 const matchId = "IND_vs_AUS_1";
 
