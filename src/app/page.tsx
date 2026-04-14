@@ -2,8 +2,16 @@
 
 import { useEffect, useState } from "react";
 
+interface CricketData {
+  matchId: string;
+  runs: number;
+  wickets: number;
+  over: number;
+  event: string;
+}
+
 export default function Page() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<CricketData | null>(null);
 
   useEffect(() => {
     const es = new EventSource("/api/stream");
