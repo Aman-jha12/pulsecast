@@ -9,18 +9,11 @@ export type EventType =
 
 export interface MatchEvent {
   matchId: string;
-
-  // state
   runs: number;
   wickets: number;
-
-  over: number;   // 12.3 (over.ball)
-  ball: number;   // 1–6 (explicit, avoids ambiguity)
-
-  // event info
+  over: number;
+  ball: number;
   event: EventType;
-  runsScored: number; // 0,1,2,3,4,6
-
-  // metadata
+  runsScored: number;
   timestamp: number;
 }

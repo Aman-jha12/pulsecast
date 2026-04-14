@@ -1,17 +1,6 @@
-import { EventType } from "@/types/event";
+import { EventType } from "../types/event";
 
-export const EVENT_TYPES: EventType[] = [
-  "RUN",
-  "FOUR",
-  "SIX",
-  "WICKET",
-  "DOT",
-  "WIDE",
-  "NO_BALL",
-];
-
-// Probability weights (for simulator realism)
-export const EVENT_WEIGHTS = [
+export const EVENT_WEIGHTS: { type: EventType; weight: number }[] = [
   { type: "DOT", weight: 30 },
   { type: "RUN", weight: 40 },
   { type: "FOUR", weight: 10 },
@@ -21,6 +10,5 @@ export const EVENT_WEIGHTS = [
   { type: "NO_BALL", weight: 5 },
 ];
 
-// Match config
 export const MAX_OVERS = 20;
 export const MAX_WICKETS = 10;

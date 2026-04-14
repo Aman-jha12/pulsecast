@@ -1,28 +1,33 @@
 import Redis from "ioredis";
 
-export async function GET() {
-  const subscriber = new Redis(
-    process.env.REDIS_URL || "redis://localhost:6379"
-  );
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const matchId = searchParams.get("matchId");
+
+  if (!matchId) {
+    return new Response("matchId required", { status: 400 });
+  }
+
+  const channel = `sports:cricket:${matchId}`;
+  const sub = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
-      await subscriber.subscribe("sports:cricket");
+      await sub.subscribe(channel);
 
-      const onMessage = (_: string, message: string) => {
+      const handler = (_: string, message: string) => {
         controller.enqueue(
           encoder.encode(`data: ${message}\n\n`)
         );
       };
 
-      subscriber.on("message", onMessage);
+      sub.on("message", handler);
 
-      // cleanup when client disconnects
       return () => {
-        subscriber.off("message", onMessage);
-        subscriber.quit();
+        sub.off("message", handler);
+        sub.quit();
       };
     },
   });

@@ -1,45 +1,34 @@
 import Redis from "ioredis";
-import { MatchEvent } from "@/types/event";
 
-const subscriber = new Redis(
-  process.env.REDIS_URL || "redis://localhost:6379"
-);
+const sub = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-let lastMilestone = 0;
+const milestoneMap = new Map<string, number>();
 
-async function startAlerts() {
-  console.log("Alerts service started...");
+async function start() {
+  console.log("Alerts started");
 
-  await subscriber.subscribe("sports:cricket");
+  await sub.psubscribe("sports:cricket:*");
 
-  subscriber.on("message", (_, message) => {
-    try {
-      const data: MatchEvent = JSON.parse(message);
+  sub.on("pmessage", (_, channel, message) => {
+    const data = JSON.parse(message);
+    const { event, runs, matchId } = data;
 
-      const { runs, event, matchId, over, wickets } = data;
+    if (event === "WICKET") {
+      console.log(`🚨 ${channel} WICKET!`);
+    }
 
-      // WICKET alert
-      if (event === "WICKET") {
-        console.log(`🚨 [${matchId}] WICKET at ${over}! Score: ${runs}/${wickets}`);
-      }
+    if (event === "FOUR" || event === "SIX") {
+      console.log(`🔥 ${channel} ${event}`);
+    }
 
-      // Boundary alert
-      if (event === "FOUR" || event === "SIX") {
-        console.log(`🔥 [${matchId}] ${event} at ${over}! Score: ${runs}/${wickets}`);
-      }
+    const last = milestoneMap.get(matchId) || 0;
+    const current = Math.floor(runs / 50) * 50;
 
-      // Milestone alert (50, 100, 150...)
-      const milestone = Math.floor(runs / 50) * 50;
-
-      if (milestone > 0 && milestone !== lastMilestone) {
-        console.log(`🏏 [${matchId}] Reached ${milestone} runs!`);
-        lastMilestone = milestone;
-      }
-
-    } catch (err) {
-      console.error("Alert parse error:", err);
+    if (current > 0 && current !== last) {
+      console.log(`🏏 ${channel} reached ${current}`);
+      milestoneMap.set(matchId, current);
     }
   });
 }
 
-startAlerts();
+start();

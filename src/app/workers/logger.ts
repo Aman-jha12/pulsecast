@@ -1,34 +1,19 @@
 import Redis from "ioredis";
-import { MatchEvent } from "@/types/event";
 
-const subscriber = new Redis(
-  process.env.REDIS_URL || "redis://localhost:6379"
-);
+const sub = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
 
-async function startLogger() {
-  console.log("Logger started...");
+async function start() {
+  console.log("Logger started");
 
-  await subscriber.subscribe("sports:cricket");
+  await sub.psubscribe("sports:cricket:*");
 
-  subscriber.on("message", (channel, message) => {
-    try {
-      const data: MatchEvent = JSON.parse(message);
+  sub.on("pmessage", (_, channel, message) => {
+    const data = JSON.parse(message);
 
-      // basic validation
-      if (!data.matchId || data.runs === undefined) {
-        console.log("Invalid event:", data);
-        return;
-      }
-
-      // formatted output
-      console.log(
-        `[${data.matchId}] ${data.over} | ${data.event} | Score: ${data.runs}/${data.wickets} (+${data.runsScored})`
-      );
-
-    } catch (err) {
-      console.error("Parse error:", err);
-    }
+    console.log(
+      `[${channel}] ${data.over} | ${data.event} | ${data.runs}/${data.wickets}`
+    );
   });
 }
 
-startLogger();
+start();
